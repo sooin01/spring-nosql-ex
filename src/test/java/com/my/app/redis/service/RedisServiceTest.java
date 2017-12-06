@@ -16,8 +16,8 @@ public class RedisServiceTest {
 	private RedisService redisService;
 
 	@Test
-	public void testGet() {
-		redisService.get("test");
+	public void testGetValue() {
+		redisService.getValue("test");
 	}
 
 }

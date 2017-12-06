@@ -11,8 +11,8 @@ public class RedisService {
 	@Autowired
 	private RedisRepository redisRepository;
 
-	public void get(String key) {
-		redisRepository.get(key);
+	public void getValue(String key) {
+		redisRepository.getValue(key);
 	}
 
 }

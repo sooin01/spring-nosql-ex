@@ -33,61 +33,81 @@ public class RedisRepositoryTest {
 	@Autowired
 	private Jackson2ObjectMapperFactoryBean jackson2ObjectMapperFactoryBean;
 
+	private User getUser() throws Exception {
+		User user = new User();
+		user.setId(UUID.randomUUID().toString());
+		user.setName("Hong Gildong");
+		user.setAge(20);
+		user.setBirthday(Timestamp.valueOf(LocalDateTime.now()));
+		return user;
+	}
+
+	private String getUserString(User user) throws Exception {
+		return jackson2ObjectMapperFactoryBean.getObject().writeValueAsString(user);
+	}
+
+	private String getUserString() throws Exception {
+		User user = new User();
+		user.setId(UUID.randomUUID().toString());
+		user.setName("Hong Gildong");
+		user.setAge(20);
+		user.setBirthday(Timestamp.valueOf(LocalDateTime.now()));
+		return jackson2ObjectMapperFactoryBean.getObject().writeValueAsString(user);
+	}
+
 	@Test
-	public void testPut() {
-		for (int i = 0; i < 100000; i++) {
-			User user = new User();
-			user.setId(UUID.randomUUID().toString());
-			user.setName("Hong Gildong");
-			user.setAge(20);
-			user.setBirthday(Timestamp.valueOf(LocalDateTime.now()));
+	public void testPushList() throws Exception {
+		redisRepository.rightPush("node:names", getUserString());
+	}
+
+	@Test
+	public void testPut() throws Exception {
+		redisRepository.putHash("node:names", "127.0.0.1", getUserString());
+		redisRepository.putHash("node:names", "172.16.0.1", getUserString());
+		redisRepository.putHash("node:names", "192.168.0.1", getUserString());
+	}
+
+	@Test
+	public void testPutHash() throws Exception {
+		for (int i = 0; i < 1; i++) {
+			User user = getUser();
 
 			Map<String, Object> map = jackson2ObjectMapperFactoryBean.getObject().convertValue(user,
 					new TypeReference<Map<String, Object>>() {
 					});
-			String key = String.format("user:id:%s:name:%s", user.getId(), user.getName());
-			redisRepository.put(key, map);
+			String key = String.format("user:id:%s:user_details", user.getId());
+			redisRepository.putAllHash(key, map);
 		}
 
 		StopWatch sw = new StopWatch();
 		sw.start();
-		for (Object object : redisRepository.keys("user:id:*:name:*", "name")) {
-			System.out.println(object);
-		}
 		sw.stop();
 		System.out.println(sw.toString());
-
-		redisRepository.deleteAll();
 	}
 
 	@Test
-	public void testSet() throws Exception {
-		for (int i = 0; i < 100000; i++) {
-			User user = new User();
-			user.setId(UUID.randomUUID().toString());
-			user.setName("Hong Gildong");
-			user.setAge(20);
-			user.setBirthday(Timestamp.valueOf(LocalDateTime.now()));
+	public void testScanHash() {
+		String key = "user:id:0d908f89-8656-4ebb-ac82-a58c0bc190c3";
+		redisRepository.scanHash(key);
+	}
 
-			String key = String.format("user:id:%s:name:%s", user.getId(), user.getName());
-			String valueAsString = jackson2ObjectMapperFactoryBean.getObject().writeValueAsString(user);
-			redisRepository.set(key, valueAsString);
+	@Test
+	public void testSetValue() throws Exception {
+		for (int i = 0; i < 1; i++) {
+			User user = getUser();
+			String key = String.format("user:id:%s", user.getId());
+			redisRepository.setValue(key, user);
 		}
 
 		StopWatch sw = new StopWatch();
 		sw.start();
-		for (Object object : redisRepository.keys("user:id:*:name:*")) {
-			System.out.println(object);
-		}
 		sw.stop();
 		System.out.println(sw.toString());
-
-		redisRepository.deleteAll();
 	}
 
 	@Test
 	public void testCodeConstant() throws Exception {
-		String value = redisRepository.get("class:code");
+		String value = (String) redisRepository.getValue("class:code");
 		ObjectMapper objectMapper = jackson2ObjectMapperFactoryBean.getObject();
 
 		StringBuilder sb = new StringBuilder();

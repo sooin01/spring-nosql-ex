@@ -5,10 +5,10 @@ import javax.annotation.Resource;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
 import org.springframework.data.redis.core.ListOperations;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
+import org.springframework.data.redis.listener.ChannelTopic;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
@@ -26,12 +26,22 @@ public class RedisConnectionTest {
 	private ListOperations<String, Object> listOps;
 
 	@Autowired
-	private JedisConnectionFactory jedisConnectionFactory;
+	private ChannelTopic channelTopic;
 
 	@Test
 	public void testGet() {
 		Object value = valueOps.get("user:test");
 		System.out.println(value);
+	}
+
+	@Test
+	public void testPublish() throws Exception {
+		for (int i = 0; i < 10; i++) {
+			redisTemplate.convertAndSend(channelTopic.getTopic(), "message " + i);
+			Thread.sleep(1000);
+		}
+
+		Thread.sleep(5000);
 	}
 
 }

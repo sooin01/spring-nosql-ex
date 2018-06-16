@@ -7,9 +7,7 @@
 		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.3.xsd
 		http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-4.3.xsd">
 	
-	<bean id="jedisPoolConfig" class="redis.clients.jedis.JedisPoolConfig">
-	
-	</bean>
+	<bean id="jedisPoolConfig" class="redis.clients.jedis.JedisPoolConfig" />
 	
 	<bean id="redisSentinelConfiguration" class="org.springframework.data.redis.connection.RedisSentinelConfiguration">
 		<constructor-arg value="mymaster" />
@@ -58,6 +56,25 @@
 				<!-- @JsonIgnoreProperties(ignoreUnknown = true) -->
 				<util:constant static-field="com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES" />
 			</array>
+		</property>
+	</bean>
+	
+	<bean id="messageListenerAdapter" class="org.springframework.data.redis.listener.adapter.MessageListenerAdapter">
+		<constructor-arg>
+			<bean class="com.my.app.redis.listener.RedisMessageListener" />
+		</constructor-arg>
+	</bean>
+	
+	<bean id="channelTopic" class="org.springframework.data.redis.listener.ChannelTopic">
+		<constructor-arg value="pubsub:message" />
+	</bean>
+	
+	<bean id="redisMessageListenerContainer" class="org.springframework.data.redis.listener.RedisMessageListenerContainer">
+		<property name="connectionFactory" ref="jedisConnectionFactory" />
+		<property name="messageListeners">
+			<map>
+				<entry key-ref="messageListenerAdapter" value-ref="channelTopic" />
+			</map>
 		</property>
 	</bean>
 	

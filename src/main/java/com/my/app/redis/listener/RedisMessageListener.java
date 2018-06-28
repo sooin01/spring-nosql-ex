@@ -10,7 +10,7 @@ public class RedisMessageListener implements MessageListener {
 	@Override
 	public void onMessage(Message message, byte[] pattern) {
 		try {
-			System.out.println("Message received: " + message.toString() + ", " + new String(pattern, "UTF-8"));
+			System.out.println("Message received: " + message + ", " + new String(pattern, "UTF-8"));
 		} catch (UnsupportedEncodingException e) {
 			e.printStackTrace();
 		}
